@@ -2,9 +2,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ElectionLab.Application\ElectionLab.Application.csproj" />
+      <ProjectReference Include="..\ElectionLab.Infrastructure\ElectionLab.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
       <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     </ItemGroup>
 

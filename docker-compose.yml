@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: electionlab-postgres
+
+    environment:
+      POSTGRES_DB: electionlab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - '5432:5432'
+
+    volumes:
+      - electionlab-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  electionlab-postgres-data:
