@@ -1,9 +1,14 @@
+using ElectionLab.Application.Abstractions;
+using ElectionEntity = ElectionLab.Domain.Election;
+
 namespace ElectionLab.Application.UseCases.Election.Register;
 
-public class RegisterElectionUseCase : IRegisterElectionUseCase
+public class RegisterElectionUseCase(IElectionRepository repository) 
+    : IRegisterElectionUseCase
 {
-    public Task Execute(RegisterElectionRequest request)
+    public async Task Execute(RegisterElectionRequest request)
     {
-        throw new NotImplementedException();
+        var election = new ElectionEntity(request.Name);
+        await repository.AddAsync(election);
     }
 }
