@@ -1,4 +1,7 @@
+using ElectionLab.Application.Abstractions;
+using ElectionLab.Application.UseCases.Election.Register;
 using ElectionLab.Infrastructure.Persistence;
+using ElectionLab.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +14,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("Database")
     )
 );
+
+builder.Services.AddScoped<IRegisterElectionUseCase, RegisterElectionUseCase>();
+builder.Services.AddScoped<IElectionRepository, ElectionRepository>();
 
 var app = builder.Build();
 

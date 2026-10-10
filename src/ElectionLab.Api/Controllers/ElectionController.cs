@@ -9,8 +9,8 @@ public class ElectionController : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Register(
-        RegisterElectionRequest request,
-        IRegisterElectionUseCase useCase)
+        [FromBody] RegisterElectionRequest request,
+        [FromServices] IRegisterElectionUseCase useCase)
     {
         await useCase.Execute(request);
         return Created();
