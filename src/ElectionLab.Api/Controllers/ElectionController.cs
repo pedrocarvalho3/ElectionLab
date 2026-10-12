@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ElectionLab.Api.Controllers;
 
-[Route("[controller]")]
+[Route("elections")]
 [ApiController]
 public class ElectionController : ControllerBase
 {
