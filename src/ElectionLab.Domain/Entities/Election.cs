@@ -12,6 +12,9 @@ public class Election
 
     public Election(string name)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Election name is required.");
+        
         Id = Guid.NewGuid();
         Name = name;
         Status = ElectionStatus.Draft;
