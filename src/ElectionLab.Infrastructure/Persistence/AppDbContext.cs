@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
         : base(options) { }
     
     public DbSet<Election> Elections => Set<Election>();
+    public DbSet<Candidate> Candidates => Set<Candidate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

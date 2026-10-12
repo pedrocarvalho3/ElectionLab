@@ -22,6 +22,31 @@ namespace ElectionLab.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ElectionLab.Domain.Candidate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ElectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ElectionId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("candidates", (string)null);
+                });
+
             modelBuilder.Entity("ElectionLab.Domain.Election", b =>
                 {
                     b.Property<Guid>("Id")
@@ -39,6 +64,15 @@ namespace ElectionLab.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("elections", (string)null);
+                });
+
+            modelBuilder.Entity("ElectionLab.Domain.Candidate", b =>
+                {
+                    b.HasOne("ElectionLab.Domain.Election", null)
+                        .WithMany()
+                        .HasForeignKey("ElectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
