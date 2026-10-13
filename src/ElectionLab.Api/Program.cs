@@ -1,4 +1,5 @@
 using ElectionLab.Application.Abstractions;
+using ElectionLab.Application.UseCases.Candidate.Register;
 using ElectionLab.Application.UseCases.Election.Register;
 using ElectionLab.Infrastructure.Persistence;
 using ElectionLab.Infrastructure.Repositories;
@@ -17,6 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IRegisterElectionUseCase, RegisterElectionUseCase>();
 builder.Services.AddScoped<IElectionRepository, ElectionRepository>();
+builder.Services.AddScoped<IRegisterCandidateUseCase, RegisterCandidateUseCase>();
+builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
 
 var app = builder.Build();
 
