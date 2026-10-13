@@ -36,11 +36,11 @@ public class RegisterElectionUseCaseTests
 
     private sealed class InMemoryElectionRepository : IElectionRepository
     {
-        private readonly List<ElectionLab.Domain.Election> _addedElections = [];
+        private readonly List<Domain.Election> _addedElections = [];
 
-        public IReadOnlyCollection<ElectionLab.Domain.Election> AddedElections => _addedElections;
+        public IReadOnlyCollection<Domain.Election> AddedElections => _addedElections;
 
-        public Task AddAsync(ElectionLab.Domain.Election election)
+        public Task AddAsync(Domain.Election election)
         {
             _addedElections.Add(election);
             return Task.CompletedTask;
