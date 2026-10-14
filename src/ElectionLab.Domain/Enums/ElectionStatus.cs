@@ -4,5 +4,6 @@ public enum ElectionStatus
 {
     Draft,
     Open,
-    Closed
+    Closed,
+    Published
 }
