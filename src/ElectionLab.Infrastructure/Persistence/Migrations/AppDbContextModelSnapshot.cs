@@ -66,7 +66,47 @@ namespace ElectionLab.Infrastructure.Persistence.Migrations
                     b.ToTable("elections", (string)null);
                 });
 
+            modelBuilder.Entity("ElectionLab.Domain.PollingStation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<Guid>("ElectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ElectionId", "Code")
+                        .IsUnique();
+
+                    b.ToTable("polling_stations", (string)null);
+                });
+
             modelBuilder.Entity("ElectionLab.Domain.Candidate", b =>
+                {
+                    b.HasOne("ElectionLab.Domain.Election", null)
+                        .WithMany()
+                        .HasForeignKey("ElectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ElectionLab.Domain.PollingStation", b =>
                 {
                     b.HasOne("ElectionLab.Domain.Election", null)
                         .WithMany()

@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     
     public DbSet<Election> Elections => Set<Election>();
     public DbSet<Candidate> Candidates => Set<Candidate>();
+    public DbSet<PollingStation> PollingStations => Set<PollingStation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
