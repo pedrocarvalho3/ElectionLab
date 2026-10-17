@@ -32,7 +32,14 @@ repair manually changed column definitions. No database recreation or data expor
 is required. Dapper does not validate field lengths before sending SQL, so the
 database still rejects station codes longer than four characters.
 
-For future schema changes, add ordered SQL files such as `002_AddExample.sql` in
+`002_AddVotes.sql` adds the `votes` table. Candidate votes require a candidate
+from the same election; blank and null votes have no candidate. The database
+stores `VoteType` as an integer (Candidate = 0, Blank = 1, Null = 2) and
+`CreatedAt` as a timestamp with time zone. Referenced elections and candidates
+cannot be deleted while votes refer to them. Apply it with the same migration
+command shown above; already applied scripts are skipped.
+
+For future schema changes, add ordered SQL files such as `003_AddExample.sql` in
 `src/ElectionLab.Infrastructure/Persistence/Migrations`, rebuild, and run the
 migration command. Applied scripts are immutable; use a new script for changes.
 Scripts run inside the migrator's transaction and must not include BEGIN/COMMIT.

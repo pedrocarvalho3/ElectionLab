@@ -114,7 +114,7 @@ public class PersistenceTests
         Assert.Equal(election.Name, await connection.QuerySingleAsync<string>("SELECT \"Name\" FROM elections;"));
         Assert.Equal(1, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM candidates;"));
         Assert.Equal("0001", await connection.QuerySingleAsync<string>("SELECT \"Code\" FROM polling_stations;"));
-        Assert.Equal(1, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM \"__SchemaMigrations\";"));
+        Assert.Equal(2, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM \"__SchemaMigrations\";"));
         Assert.Equal("legacy", await connection.QuerySingleAsync<string>("SELECT \"MigrationId\" FROM \"__EFMigrationsHistory\";"));
     }
 
@@ -127,7 +127,88 @@ public class PersistenceTests
             new DatabaseMigrator(database.DataSource).MigrateAsync());
 
         await using var connection = await database.DataSource.OpenConnectionAsync();
-        Assert.Equal(1, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM \"__SchemaMigrations\";"));
+        Assert.Equal(2, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM \"__SchemaMigrations\";"));
+    }
+
+    [PostgresFact]
+    public async Task Votes_ShouldStoreCandidateBlankAndNullVotesAndRetainDataOnRerun()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var migrator = new DatabaseMigrator(database.DataSource);
+        await migrator.MigrateAsync();
+        var election = new Election("Vote test");
+        var candidate = new Candidate(election.Id, "Ana", 12);
+        await new ElectionRepository(database.DataSource).AddAsync(election);
+        await new CandidateRepository(database.DataSource).AddAsync(candidate);
+
+        await using var connection = await database.DataSource.OpenConnectionAsync();
+        const string insert = """
+            INSERT INTO votes ("Id", "ElectionId", "CandidateId", "Type", "CreatedAt")
+            VALUES (@Id, @ElectionId, @CandidateId, @Type, @CreatedAt);
+            """;
+        var id = Guid.NewGuid();
+        var createdAt = DateTime.UtcNow;
+        await connection.ExecuteAsync(insert, new
+        {
+            Id = id, ElectionId = election.Id, CandidateId = candidate.Id, Type = 0, CreatedAt = createdAt
+        });
+        foreach (var type in new[] { 1, 2 })
+            await connection.ExecuteAsync(insert, new
+            {
+                Id = Guid.NewGuid(), ElectionId = election.Id, CandidateId = (Guid?)null,
+                Type = type, CreatedAt = createdAt
+            });
+
+        await migrator.MigrateAsync();
+
+        var stored = await connection.QuerySingleAsync("SELECT * FROM votes WHERE \"Id\" = @Id;", new { Id = id });
+        Assert.Equal(election.Id, (Guid)stored.ElectionId);
+        Assert.Equal(candidate.Id, (Guid)stored.CandidateId);
+        Assert.Equal(0, (int)stored.Type);
+        Assert.True(Math.Abs((createdAt - (DateTime)stored.CreatedAt).Ticks) < 10);
+        Assert.Equal(3, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM votes;"));
+        Assert.Equal(2, await connection.ExecuteScalarAsync<int>(
+            "SELECT count(*) FROM votes WHERE \"CandidateId\" IS NULL;"));
+
+        await AssertSqlState("23503", async () =>
+        {
+            await connection.ExecuteAsync("DELETE FROM candidates WHERE \"Id\" = @Id;", new { candidate.Id });
+        });
+    }
+
+    [PostgresFact]
+    public async Task Votes_ShouldRejectInvalidTypesCandidatesAndElections()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        await new DatabaseMigrator(database.DataSource).MigrateAsync();
+        var election = new Election("First");
+        var otherElection = new Election("Second");
+        await new ElectionRepository(database.DataSource).AddAsync(election);
+        await new ElectionRepository(database.DataSource).AddAsync(otherElection);
+        var candidate = new Candidate(election.Id, "Ana", 12);
+        await new CandidateRepository(database.DataSource).AddAsync(candidate);
+        await using var connection = await database.DataSource.OpenConnectionAsync();
+
+        async Task InsertVote(Guid electionId, Guid? candidateId, int type)
+        {
+            await connection.ExecuteAsync("""
+                INSERT INTO votes ("Id", "ElectionId", "CandidateId", "Type", "CreatedAt")
+                VALUES (@Id, @ElectionId, @CandidateId, @Type, @CreatedAt);
+                """, new
+            {
+                Id = Guid.NewGuid(), ElectionId = electionId, CandidateId = candidateId,
+                Type = type, CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        await AssertSqlState("23514", () => InsertVote(election.Id, null, 0));
+        await AssertSqlState("23514", () => InsertVote(election.Id, candidate.Id, 1));
+        await AssertSqlState("23514", () => InsertVote(election.Id, candidate.Id, 2));
+        await AssertSqlState("23514", () => InsertVote(election.Id, null, 99));
+        await AssertSqlState("23503", () => InsertVote(election.Id, Guid.NewGuid(), 0));
+        await AssertSqlState("23503", () => InsertVote(otherElection.Id, candidate.Id, 0));
+        await AssertSqlState("23503", () => InsertVote(Guid.NewGuid(), null, 1));
+        Assert.Equal(0, await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM votes;"));
     }
 
     private static async Task AssertSqlState(string expected, Func<Task> action)
