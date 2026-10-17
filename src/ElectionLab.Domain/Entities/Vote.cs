@@ -5,6 +5,7 @@ namespace ElectionLab.Domain;
 public class Vote
 {
     public Guid Id { get; private set; }
+    public Guid PollingStationId { get; private set; }
     public Guid ElectionId { get; private set; }
     public Guid? CandidateId { get; private set; }
     VoteType Type { get; set; }
