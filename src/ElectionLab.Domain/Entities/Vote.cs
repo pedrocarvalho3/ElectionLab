@@ -8,12 +8,12 @@ public class Vote
     public Guid PollingStationId { get; private set; }
     public Guid ElectionId { get; private set; }
     public Guid? CandidateId { get; private set; }
-    VoteType Type { get; set; }
+    public VoteType Type { get; private set; }
     public DateTime CreatedAt { get; private set; }
     
     private Vote() { }
 
-    public Vote(Guid electionId, Guid candidateId, VoteType type)
+    public Vote(Guid pollingStationId, Guid electionId, Guid candidateId, VoteType type)
     {
         if (electionId == Guid.Empty)
             throw new ArgumentException(
@@ -24,6 +24,7 @@ public class Vote
             CandidateId = candidateId;
         
         Id = Guid.NewGuid();
+        PollingStationId = pollingStationId;
         ElectionId = electionId;
         Type = type;
         CreatedAt = DateTime.UtcNow;
