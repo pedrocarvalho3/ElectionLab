@@ -25,4 +25,21 @@ public class PollingStationRepository(NpgsqlDataSource dataSource) : IPollingSta
             pollingStation.ClosedAt
         });
     }
+    
+    public async Task<PollingStation?> GetByIdAsync(Guid pollingStationId)
+    {
+        const string sql = """
+                           SELECT *
+                           FROM polling_stations
+                           WHERE "Id" = @Id;
+                           """;
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        var pollingStation = await connection.QuerySingleOrDefaultAsync<PollingStation>(sql, new
+        {
+            Id = pollingStationId
+        });
+        
+        return pollingStation;
+    }
 }
