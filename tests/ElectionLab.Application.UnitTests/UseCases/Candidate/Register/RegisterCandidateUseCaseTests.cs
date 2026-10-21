@@ -33,5 +33,10 @@ public class RegisterCandidateUseCaseTests
            _addedCandidates.Add(candidate);
            return Task.CompletedTask;
         }
+
+        public Task<Domain.Candidate?> GetByNumberAsync(Guid electionId, int number)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

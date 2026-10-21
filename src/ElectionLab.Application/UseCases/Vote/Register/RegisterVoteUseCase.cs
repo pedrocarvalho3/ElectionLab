@@ -7,7 +7,7 @@ namespace ElectionLab.Application.UseCases.Vote.Register;
 public class RegisterVoteUseCase(IVoteRepository voteRepository, IPollingStationRepository pollingStationRepository, ICandidateRepository candidateRepository)
     : IRegisterVoteUseCase
 {
-    public async Task Execute(Guid pollingStationId, int? candidateNumber, VoteType type)
+    public async Task Execute(Guid pollingStationId, RegisterVoteRequest request)
     {
         var pollingStation =
             await pollingStationRepository.GetByIdAsync(pollingStationId);
@@ -19,13 +19,13 @@ public class RegisterVoteUseCase(IVoteRepository voteRepository, IPollingStation
         
         Guid? candidateId = null;
 
-        if (type == VoteType.Candidate)
+        if (request.type == VoteType.Candidate)
         {
-            if (candidateNumber is null)
+            if (request.candidateNumber is null)
                 throw new ArgumentException("Candidate number is required.");
             
             var candidate = await candidateRepository
-                .GetByNumberAsync(electionId, candidateNumber.Value);
+                .GetByNumberAsync(electionId, request.candidateNumber.Value);
             
             if (candidate is null)
                 throw new Exception("Candidate not found.");
@@ -37,7 +37,7 @@ public class RegisterVoteUseCase(IVoteRepository voteRepository, IPollingStation
             pollingStationId,
             electionId,
             candidateId,
-            type);
+            request.type);
 
         await voteRepository.AddAsync(vote);
     }
