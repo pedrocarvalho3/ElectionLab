@@ -13,7 +13,7 @@ public class Vote
     
     private Vote() { }
 
-    public Vote(Guid pollingStationId, Guid electionId, Guid candidateId, VoteType type)
+    public Vote(Guid pollingStationId, Guid electionId, Guid? candidateId, VoteType type)
     {
         if (electionId == Guid.Empty)
             throw new ArgumentException(

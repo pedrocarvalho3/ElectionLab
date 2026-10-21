@@ -23,4 +23,22 @@ public class CandidateRepository(NpgsqlDataSource dataSource) : ICandidateReposi
             candidate.Number
         });
     }
+    
+    public async Task<Candidate?> GetByNumberAsync(Guid electionId, int number)
+    {
+        const string sql = """
+                           SELECT *
+                           FROM candidates
+                           WHERE "ElectionId" = @ElectionId AND Number = @Number;
+                           """;
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        var candidate = await connection.QuerySingleOrDefaultAsync<Candidate>(sql, new
+        {
+            ElectionId = electionId,
+            Number = number
+        });
+        
+        return candidate;
+    }
 }
